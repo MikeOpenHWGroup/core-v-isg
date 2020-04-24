@@ -18,9 +18,9 @@
 `define RISCV_TXN_PKG__SV
 
 package riscv_txn_pkg;
-	import uvm_pkg::*;
+  import uvm_pkg::*;
 
-	`include "riscv_inst_base_txn.sv"
+  `include "riscv_inst_base_txn.sv"
 endpackage: riscv_txn_pkg
 
 `endif // RISCV_TXN_PKG__SV

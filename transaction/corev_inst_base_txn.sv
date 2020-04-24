@@ -262,13 +262,13 @@ class riscv_inst_base_txn extends uvm_sequence_item;
     `uvm_field_int(succ,                    UVM_ALL_ON)
     `uvm_field_int(inst_bin_code,           UVM_ALL_ON)
     `uvm_field_int(inst_bin_code_size,      UVM_ALL_ON)
-    `uvm_field_int(is_key_inst,             UVM_ALL_ON)
-    `uvm_field_int(is_isr_inst,             UVM_ALL_ON)
-    `uvm_field_int(is_change_store_inst,    UVM_ALL_ON)
-    `uvm_field_int(is_rvc_inst,             UVM_ALL_ON)
-    `uvm_field_int(is_dummy_inst,           UVM_ALL_ON)
-    `uvm_field_int(target,                  UVM_ALL_ON)
-    `uvm_field_int(imm_64,                  UVM_ALL_ON)
+    `uvm_field_int(is_key_inst,       UVM_ALL_ON)
+    `uvm_field_int(is_isr_inst,       UVM_ALL_ON)
+    `uvm_field_int(is_change_store_inst,  UVM_ALL_ON)
+    `uvm_field_int(is_rvc_inst,       UVM_ALL_ON)
+    `uvm_field_int(is_dummy_inst,     UVM_ALL_ON)
+    `uvm_field_int(target,          UVM_ALL_ON)
+    `uvm_field_int(imm_64,          UVM_ALL_ON)
     `uvm_field_enum(inst_type_e,inst_type,  UVM_ALL_ON)
   `uvm_object_utils_end
 
@@ -276,7 +276,7 @@ class riscv_inst_base_txn extends uvm_sequence_item;
   const bit [4:0] rvc_gprlist[8] = {8,9,10,11,12,13,14,15}; 
 
   constraint c_inst_c_ext {
-        // Add constraint here
+    // Add constraint here
         solve inst_type before rd, rs1, rs2, rs3, imm, rm, csr, pred, succ;
         (inst_type == OP_C_ADD)         -> {rs2!=0; rs1 == rd;}
         (inst_type == OP_C_JALR)        -> {rs1!=0;}
@@ -284,7 +284,8 @@ class riscv_inst_base_txn extends uvm_sequence_item;
         (inst_type == OP_C_MV)          -> {rs2!=0;}
         (inst_type == OP_C_JR)          -> {rs1!=0;}
 
-        /*(inst_type == OP_C_ADDI4SPN)    -> {rd inside rvc_gprlist; imm[9:2] != 0;}
+        /*
+        (inst_type == OP_C_ADDI4SPN)    -> {rd  inside rvc_gprlist; imm[9:2] != 0;}
         (inst_type == OP_C_LW)          -> {rs1 inside rvc_gprlist; rd inside rvc_gprlist;}
         (inst_type == OP_C_LD)          -> {rs1 inside rvc_gprlist; rd inside rvc_gprlist;}
 
@@ -321,7 +322,7 @@ class riscv_inst_base_txn extends uvm_sequence_item;
         // otherwise when corresponding store is changed to load, previous randomized rd value (with store constraint) will be conflicted with new rd constraint (with load constraint)
         (inst_type == OP_C_SWSP)        -> {rd != 0;}
         (inst_type == OP_C_SDSP)        -> {rd != 0;}
-  }
+    }
 
 
   extern function new(string name = "riscv_inst_base_txn");
@@ -339,12 +340,13 @@ class riscv_inst_base_txn extends uvm_sequence_item;
   extern function bit is_c_extension_inst(bit[31:0] inst_code);
 
 endclass : riscv_inst_base_txn
-
+ 
 
 function riscv_inst_base_txn::new(string name = "riscv_inst_base_txn");
   super.new(name);
   is_key_inst = 0;
 endfunction: new
+
 
 function bit riscv_inst_base_txn::is_in_pc_pa_queue(bit[255:0] addr);
     bit found = 0;
@@ -591,11 +593,11 @@ function bit[31:0] riscv_inst_base_txn::gen_inst_bin_code();
   else if (this.inst_type == OP_SFENCE) begin
     this.inst_bin_code = (7'b0001001 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b000 << 12) + (5'b00000 << 7) + 7'b1110011;
   end
-    else if (this.inst_type == OP_FLW) begin
+  else if (this.inst_type == OP_FLW) begin
     this.inst_bin_code = (imm[11:0] << 20) + (rs1 << 15) + (3'b010 << 12) + (rd << 7) + 7'b000_0111;
-    end else if (this.inst_type == OP_FSW) begin
+  end else if (this.inst_type == OP_FSW) begin
     this.inst_bin_code = (imm[11:5] << 25) + (rs2 << 20) + (rs1 << 15) + (3'b010 << 12) + (imm[4:0] << 7) + 7'b010_0111;
-    end else if (this.inst_type == OP_FADD_S) begin
+  end else if (this.inst_type == OP_FADD_S) begin
     this.inst_bin_code = (7'b000_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b101_0011;
   end else if (this.inst_type == OP_FSUB_S) begin
     this.inst_bin_code = (7'b000_0100 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b101_0011;
@@ -605,33 +607,33 @@ function bit[31:0] riscv_inst_base_txn::gen_inst_bin_code();
     this.inst_bin_code = (7'b000_1100 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b101_0011;
   end else if (this.inst_type == OP_FSQRT_S) begin
     this.inst_bin_code = (7'b010_1100 << 25) + (5'b0_0000 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FSGNJ_S) begin
+  end else if (this.inst_type == OP_FSGNJ_S) begin
     this.inst_bin_code = (7'b001_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b000 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FSGNJN_S) begin
+  end else if (this.inst_type == OP_FSGNJN_S) begin
     this.inst_bin_code = (7'b001_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b001 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FSGNJX_S) begin
+  end else if (this.inst_type == OP_FSGNJX_S) begin
     this.inst_bin_code = (7'b001_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b010 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FMADD_S) begin
+  end else if (this.inst_type == OP_FMADD_S) begin
     this.inst_bin_code = (rs3 << 27) + (2'b00 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b100_0011;
-    end else if (this.inst_type == OP_FMSUB_S) begin
+  end else if (this.inst_type == OP_FMSUB_S) begin
     this.inst_bin_code = (rs3 << 27) + (2'b00 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b100_0111;
-    end else if (this.inst_type == OP_FNMADD_S) begin
+  end else if (this.inst_type == OP_FNMADD_S) begin
     this.inst_bin_code = (rs3 << 27) + (2'b00 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b100_1111;
-    end else if (this.inst_type == OP_FNMSUB_S) begin
+  end else if (this.inst_type == OP_FNMSUB_S) begin
     this.inst_bin_code = (rs3 << 27) + (2'b00 << 25) + (rs2 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b100_1011;
-    end else if (this.inst_type == OP_FMIN_S) begin
+  end else if (this.inst_type == OP_FMIN_S) begin
     this.inst_bin_code = (7'b001_0100 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b000 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FMAX_S) begin
+  end else if (this.inst_type == OP_FMAX_S) begin
     this.inst_bin_code = (7'b001_0100 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b001 << 12) + (rd << 7) + 7'b101_0011;
   end else if (this.inst_type == OP_FMV_X_S) begin
     this.inst_bin_code = (7'b111_0000 << 25) + (5'b0_0000 << 20) + (rs1 << 15) + (3'b000 << 12) + (rd << 7) + 7'b101_0011;
   end else if (this.inst_type == OP_FMV_S_X) begin
     this.inst_bin_code = (7'b111_1000 << 25) + (5'b0_0000 << 20) + (rs1 << 15) + (3'b000 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FEQ_S) begin
+  end else if (this.inst_type == OP_FEQ_S) begin
     this.inst_bin_code = (7'b101_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b010 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FLT_S) begin
+  end else if (this.inst_type == OP_FLT_S) begin
     this.inst_bin_code = (7'b101_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b001 << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_FLE_S) begin
+  end else if (this.inst_type == OP_FLE_S) begin
     this.inst_bin_code = (7'b101_0000 << 25) + (rs2 << 20) + (rs1 << 15) + (3'b000 << 12) + (rd << 7) + 7'b101_0011;
   end else if (this.inst_type == OP_FCLASS_S) begin
     this.inst_bin_code = (7'b111_0000 << 25) + (5'b0_0000 << 20) + (rs1 << 15) + (3'b001 << 12) + (rd << 7) + 7'b101_0011;
@@ -651,108 +653,108 @@ function bit[31:0] riscv_inst_base_txn::gen_inst_bin_code();
     this.inst_bin_code = (7'b110_1000 << 25) + (5'b0_0010 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b101_0011;
   end else if (this.inst_type == OP_FCVT_S_LU) begin
     this.inst_bin_code = (7'b110_1000 << 25) + (5'b0_0011 << 20) + (rs1 << 15) + (rm << 12) + (rd << 7) + 7'b101_0011;
-    end else if (this.inst_type == OP_C_ADDI4SPN) begin
-        this.inst_bin_code = (3'b000<<13) + (imm[5:4]<<11) + (imm[9:6]<<7) + (imm[2]<<6) + (imm[3]<<5) + (rd[2:0]<<2) + 2'b00;          //imm -> nzimm
-//DFP    end else if (this.inst_type == OP_C_FLD) begin
-//DFP        this.inst_bin_code = (3'b001<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rd[2:0]<<2) + 2'b00;
-//RV128    end else if (this.inst_type == OP_C_LQ) begin
-//RV128        this.inst_bin_code = (3'b001<<13) + (imm[5:4]<<11) + (imm[8]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rd[2:0]<<2) + 2'b00;
-    end else if (this.inst_type == OP_C_LW) begin
-        this.inst_bin_code = (3'b010<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rd[2:0]<<2) + 2'b00;
-//RV32    end else if (this.inst_type == OP_C_FLW) begin
-//RV32        this.inst_bin_code = (3'b011<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rd[2:0]<<2) + 2'b00;
-    end else if (this.inst_type == OP_C_LD) begin
-        this.inst_bin_code = (3'b011<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rd[2:0]<<2) + 2'b00;
-//DFP    end else if (this.inst_type == OP_C_FSD) begin
-//DFP        this.inst_bin_code = (3'b101<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rs2[2:0]<<2) + 2'b00;
-//RV128    end else if (this.inst_type == OP_C_SQ) begin
-//RV128        this.inst_bin_code = (3'b101<<13) + (imm[5:4]<<11) + (imm[8]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rs2[2:0]<<2) + 2'b00;
-    end else if (this.inst_type == OP_C_SW) begin
-        this.inst_bin_code = (3'b110<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rs2[2:0]<<2) + 2'b00;
-//RV32    end else if (this.inst_type == OP_C_FSW) begin
-//RV32        this.inst_bin_code = (3'b111<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rs2[2:0]<<2) + 2'b00;
-    end else if (this.inst_type == OP_C_SD) begin
-        this.inst_bin_code = (3'b111<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rs2[2:0]<<2) + 2'b00;
-    end else if (this.inst_type == OP_C_NOP) begin
-        this.inst_bin_code = (3'b000<<13) + (1'b0<<12) + (5'b00000<<7) + (5'b00000<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_ADDI) begin
-        this.inst_bin_code = (3'b000<<13) + (imm[5]<<12) + (rs1<<7) + (imm[4:0]<<2) + 2'b01;                          //imm -> nzimm          //rs1/rd!=0.  TODO/FIXME
-//RV32    end else if (this.inst_type == OP_C_JAL) begin
-//RV32        this.inst_bin_code = (3'b001<<13) + (imm[11]<<12) + (imm[4]<<11) + (imm[9:8]<<9) + (imm[10]<<8) + (imm[6]<<7) + (imm[7]<<6) + (imm[3:1]<<3) + (imm[5]<<2) + 2'b01;      //offset
-    end else if (this.inst_type == OP_C_ADDIW) begin
-        this.inst_bin_code = (3'b001<<13) + (imm[5]<<12) + (rs1<<7) + (imm[4:0]<<2) + 2'b01;                          
-    end else if (this.inst_type == OP_C_LI) begin
-        this.inst_bin_code = (3'b010<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:0]<<2) + 2'b01;                          
-    end else if (this.inst_type == OP_C_ADDI16SP) begin
-        this.inst_bin_code = (3'b011<<13) + (imm[9]<<12) + (5'd2<<7) + (imm[4]<<6) + (imm[6]<<5) + (imm[8:7]<<3) + (imm[5]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_LUI) begin
-        this.inst_bin_code = (3'b011<<13) + (imm[17]<<12) + (rd<<7) + (imm[16:12]<<2) + 2'b01;                         
-    end else if (this.inst_type == OP_C_SRLI) begin
-        this.inst_bin_code = (3'b100<<13) + (imm[5]<<12) + (2'b00<<10) + (rs1[2:0]<<7) + (imm[4:0]<<2) + 2'b01;
-//    end else if (this.inst_type == OP_C_SRLI64) begin
-//        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b00<<10) + (rs1[2:0]<<7) + (5'b00000<2) + 2'b01;
-    end else if (this.inst_type == OP_C_SRAI) begin
-        this.inst_bin_code = (3'b100<<13) + (imm[5]<<12) + (2'b01<<10) + (rs1[2:0]<<7) + (imm[4:0]<<2) + 2'b01;
-//    end else if (this.inst_type == OP_C_SRAI64) begin
-//        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b01<<10) + (rs1[2:0]<<7) + (5'b00000<2) + 2'b01;
-    end else if (this.inst_type == OP_C_ANDI) begin
-        this.inst_bin_code = (3'b100<<13) + (imm[5]<<12) + (2'b10<<10) + (rs1[2:0]<<7) + (imm[4:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_SUB) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b00<<5) + (rs2[2:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_XOR) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b01<<5) + (rs2[2:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_OR) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b10<<5) + (rs2[2:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_AND) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b11<<5) + (rs2[2:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_SUBW) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b00<<5) + (rs2[2:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_ADDW) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b01<<5) + (rs2[2:0]<<2) + 2'b01;
-    end else if (this.inst_type == OP_C_J) begin
-        this.inst_bin_code = (3'b101<<13) + (imm[11]<<12) + (imm[4]<<11) + (imm[9:8]<<9) + (imm[10]<<8) + (imm[6]<<7) + (imm[7]<<6) + (imm[3:1]<<3) + (imm[5]<<2) + 2'b01;  //offset
-    end else if (this.inst_type == OP_C_BEQZ) begin
-        this.inst_bin_code = (3'b110<<13) + (imm[8]<<12) + (imm[4:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (imm[2:1]<<3) + (imm[5]<<2) + 2'b01;  //offset
-    end else if (this.inst_type == OP_C_BNEZ) begin
-        this.inst_bin_code = (3'b111<<13) + (imm[8]<<12) + (imm[4:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (imm[2:1]<<3) + (imm[5]<<2) + 2'b01;  //offset
-    end else if (this.inst_type == OP_C_SLLI) begin
-        this.inst_bin_code = (3'b000<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:0]<<2) + 2'b10;
-//    end else if (this.inst_type == OP_C_SLLI64) begin
-//        this.inst_bin_code = (3'b000<<13) + (1'b0<<12) + (rd<<7) + (5'b00000<<2) + 2'b10;
-//DFP    end else if (this.inst_type == OP_C_FLDSP) begin
-//DFP        this.inst_bin_code = (3'b001<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:3]<<5) + (imm[8:6]<<2) + 2'b10;
-//RV128    end else if (this.inst_type == OP_C_LQSP) begin
-//RV128        this.inst_bin_code = (3'b001<<13) + (imm[5]<<12) + (rd<<7) + (imm[4]<<6) + (imm[9:6]<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_LWSP) begin
-        this.inst_bin_code = (3'b010<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:2]<<4) + (imm[7:6]<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_ADDI4SPN) begin
+    this.inst_bin_code = (3'b000<<13) + (imm[5:4]<<11) + (imm[9:6]<<7) + (imm[2]<<6) + (imm[3]<<5) + (rd[2:0]<<2) + 2'b00;          //imm -> nzimm
+//DFP  end else if (this.inst_type == OP_C_FLD) begin
+//DFP    this.inst_bin_code = (3'b001<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rd[2:0]<<2) + 2'b00;
+//RV128end else if (this.inst_type == OP_C_LQ) begin
+//RV128  this.inst_bin_code = (3'b001<<13) + (imm[5:4]<<11) + (imm[8]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rd[2:0]<<2) + 2'b00;
+  end else if (this.inst_type == OP_C_LW) begin
+    this.inst_bin_code = (3'b010<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rd[2:0]<<2) + 2'b00;
+//RV32 end else if (this.inst_type == OP_C_FLW) begin
+//RV32   this.inst_bin_code = (3'b011<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rd[2:0]<<2) + 2'b00;
+  end else if (this.inst_type == OP_C_LD) begin
+    this.inst_bin_code = (3'b011<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rd[2:0]<<2) + 2'b00;
+//DFP  end else if (this.inst_type == OP_C_FSD) begin
+//DFP    this.inst_bin_code = (3'b101<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rs2[2:0]<<2) + 2'b00;
+//RV128end else if (this.inst_type == OP_C_SQ) begin
+//RV128  this.inst_bin_code = (3'b101<<13) + (imm[5:4]<<11) + (imm[8]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rs2[2:0]<<2) + 2'b00;
+  end else if (this.inst_type == OP_C_SW) begin
+    this.inst_bin_code = (3'b110<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rs2[2:0]<<2) + 2'b00;
+//RV32 end else if (this.inst_type == OP_C_FSW) begin
+//RV32   this.inst_bin_code = (3'b111<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[2]<<6) + (imm[6]<<5) + (rs2[2:0]<<2) + 2'b00;
+  end else if (this.inst_type == OP_C_SD) begin
+    this.inst_bin_code = (3'b111<<13) + (imm[5:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (rs2[2:0]<<2) + 2'b00;
+  end else if (this.inst_type == OP_C_NOP) begin
+    this.inst_bin_code = (3'b000<<13) + (1'b0<<12) + (5'b00000<<7) + (5'b00000<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_ADDI) begin
+    this.inst_bin_code = (3'b000<<13) + (imm[5]<<12) + (rs1<<7) + (imm[4:0]<<2) + 2'b01;                          //imm -> nzimm          //rs1/rd!=0.  TODO/FIXME
+//RV32 end else if (this.inst_type == OP_C_JAL) begin
+//RV32   this.inst_bin_code = (3'b001<<13) + (imm[11]<<12) + (imm[4]<<11) + (imm[9:8]<<9) + (imm[10]<<8) + (imm[6]<<7) + (imm[7]<<6) + (imm[3:1]<<3) + (imm[5]<<2) + 2'b01;      //offset
+  end else if (this.inst_type == OP_C_ADDIW) begin
+    this.inst_bin_code = (3'b001<<13) + (imm[5]<<12) + (rs1<<7) + (imm[4:0]<<2) + 2'b01;                          
+  end else if (this.inst_type == OP_C_LI) begin
+    this.inst_bin_code = (3'b010<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:0]<<2) + 2'b01;                          
+  end else if (this.inst_type == OP_C_ADDI16SP) begin
+    this.inst_bin_code = (3'b011<<13) + (imm[9]<<12) + (5'd2<<7) + (imm[4]<<6) + (imm[6]<<5) + (imm[8:7]<<3) + (imm[5]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_LUI) begin
+    this.inst_bin_code = (3'b011<<13) + (imm[17]<<12) + (rd<<7) + (imm[16:12]<<2) + 2'b01;                         
+  end else if (this.inst_type == OP_C_SRLI) begin
+    this.inst_bin_code = (3'b100<<13) + (imm[5]<<12) + (2'b00<<10) + (rs1[2:0]<<7) + (imm[4:0]<<2) + 2'b01;
+//end else if (this.inst_type == OP_C_SRLI64) begin
+//  this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b00<<10) + (rs1[2:0]<<7) + (5'b00000<2) + 2'b01;
+  end else if (this.inst_type == OP_C_SRAI) begin
+    this.inst_bin_code = (3'b100<<13) + (imm[5]<<12) + (2'b01<<10) + (rs1[2:0]<<7) + (imm[4:0]<<2) + 2'b01;
+//end else if (this.inst_type == OP_C_SRAI64) begin
+//  this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b01<<10) + (rs1[2:0]<<7) + (5'b00000<2) + 2'b01;
+  end else if (this.inst_type == OP_C_ANDI) begin
+    this.inst_bin_code = (3'b100<<13) + (imm[5]<<12) + (2'b10<<10) + (rs1[2:0]<<7) + (imm[4:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_SUB) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b00<<5) + (rs2[2:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_XOR) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b01<<5) + (rs2[2:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_OR) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b10<<5) + (rs2[2:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_AND) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b11<<5) + (rs2[2:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_SUBW) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b00<<5) + (rs2[2:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_ADDW) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (2'b11<<10) + (rs1[2:0]<<7) + (2'b01<<5) + (rs2[2:0]<<2) + 2'b01;
+  end else if (this.inst_type == OP_C_J) begin
+    this.inst_bin_code = (3'b101<<13) + (imm[11]<<12) + (imm[4]<<11) + (imm[9:8]<<9) + (imm[10]<<8) + (imm[6]<<7) + (imm[7]<<6) + (imm[3:1]<<3) + (imm[5]<<2) + 2'b01;  //offset
+  end else if (this.inst_type == OP_C_BEQZ) begin
+    this.inst_bin_code = (3'b110<<13) + (imm[8]<<12) + (imm[4:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (imm[2:1]<<3) + (imm[5]<<2) + 2'b01;  //offset
+  end else if (this.inst_type == OP_C_BNEZ) begin
+    this.inst_bin_code = (3'b111<<13) + (imm[8]<<12) + (imm[4:3]<<10) + (rs1[2:0]<<7) + (imm[7:6]<<5) + (imm[2:1]<<3) + (imm[5]<<2) + 2'b01;  //offset
+  end else if (this.inst_type == OP_C_SLLI) begin
+    this.inst_bin_code = (3'b000<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:0]<<2) + 2'b10;
+//end else if (this.inst_type == OP_C_SLLI64) begin
+//  this.inst_bin_code = (3'b000<<13) + (1'b0<<12) + (rd<<7) + (5'b00000<<2) + 2'b10;
+//DFPend else if (this.inst_type == OP_C_FLDSP) begin
+//DFP  this.inst_bin_code = (3'b001<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:3]<<5) + (imm[8:6]<<2) + 2'b10;
+//RV128end else if (this.inst_type == OP_C_LQSP) begin
+//RV128    this.inst_bin_code = (3'b001<<13) + (imm[5]<<12) + (rd<<7) + (imm[4]<<6) + (imm[9:6]<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_LWSP) begin
+    this.inst_bin_code = (3'b010<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:2]<<4) + (imm[7:6]<<2) + 2'b10;
 //RV32    end else if (this.inst_type == OP_C_FLWSP) begin
-//RV32        this.inst_bin_code = (3'b011<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:2]<<4) + (imm[7:6]<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_LDSP) begin
-        this.inst_bin_code = (3'b011<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:3]<<5) + (imm[8:6]<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_JR) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (rs1<<7) + (5'b00000<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_MV) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (rd<<7) + (rs2<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_EBREAK) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (5'b00000<<7) + (5'b00000<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_JALR) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (rs1<<7) + (5'b00000<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_ADD) begin
-        this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (rd<<7) + (rs2<<2) + 2'b10;
-//DFP    end else if (this.inst_type == OP_C_FSDSP) begin
-//DFP        this.inst_bin_code = (3'b101<<13) + (imm[5:3]<<10) + (imm[8:6]<<7) + (rs2<<2) + 2'b10;
-//RV128    end else if (this.inst_type == OP_C_SQSP) begin
-//RV128        this.inst_bin_code = (3'b101<<13) + (imm[5:4]<<11) + (imm[9:6]<<7) + (rs2<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_SWSP) begin
-        this.inst_bin_code = (3'b110<<13) + (imm[5:2]<<9)  + (imm[7:6]<<7) + (rs2<<2) + 2'b10;
+//RV32    this.inst_bin_code = (3'b011<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:2]<<4) + (imm[7:6]<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_LDSP) begin
+    this.inst_bin_code = (3'b011<<13) + (imm[5]<<12) + (rd<<7) + (imm[4:3]<<5) + (imm[8:6]<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_JR) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (rs1<<7) + (5'b00000<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_MV) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b0<<12) + (rd<<7) + (rs2<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_EBREAK) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (5'b00000<<7) + (5'b00000<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_JALR) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (rs1<<7) + (5'b00000<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_ADD) begin
+    this.inst_bin_code = (3'b100<<13) + (1'b1<<12) + (rd<<7) + (rs2<<2) + 2'b10;
+//DFPend else if (this.inst_type == OP_C_FSDSP) begin
+//DFP  this.inst_bin_code = (3'b101<<13) + (imm[5:3]<<10) + (imm[8:6]<<7) + (rs2<<2) + 2'b10;
+//RV128end else if (this.inst_type == OP_C_SQSP) begin
+//RV128  this.inst_bin_code = (3'b101<<13) + (imm[5:4]<<11) + (imm[9:6]<<7) + (rs2<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_SWSP) begin
+    this.inst_bin_code = (3'b110<<13) + (imm[5:2]<<9)  + (imm[7:6]<<7) + (rs2<<2) + 2'b10;
 //RV32    end else if (this.inst_type == OP_C_FSWSP) begin
-//RV32        this.inst_bin_code = (3'b111<<13) + (imm[5:2]<<9)  + (imm[7:6]<<7) + (rs2<<2) + 2'b10;
-    end else if (this.inst_type == OP_C_SDSP) begin
-        this.inst_bin_code = (3'b111<<13) + (imm[5:3]<<10) + (imm[8:6]<<7) + (rs2<<2) + 2'b10;
+//RV32    this.inst_bin_code = (3'b111<<13) + (imm[5:2]<<9)  + (imm[7:6]<<7) + (rs2<<2) + 2'b10;
+  end else if (this.inst_type == OP_C_SDSP) begin
+    this.inst_bin_code = (3'b111<<13) + (imm[5:3]<<10) + (imm[8:6]<<7) + (rs2<<2) + 2'b10;
   end else begin
     `uvm_info("debug", $psprintf("Got an invalid instruction type 0x%0x\n", this.inst_type), UVM_HIGH);
-        // TODO, randomly generate one illegal inst
-        this.inst_bin_code = (25'b0 << 7) + 7'b1111111;
+    // TODO, randomly generate one illegal inst
+    this.inst_bin_code = (25'b0 << 7) + 7'b1111111;
   end
 
     if (is_c_extension_inst(this.inst_bin_code)) begin
@@ -763,377 +765,378 @@ function bit[31:0] riscv_inst_base_txn::gen_inst_bin_code();
     end
 endfunction: gen_inst_bin_code
 
+
 function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
   this.is_rs1_valid = 0;
   this.is_rs2_valid = 0;
   this.is_rs3_valid = 0;
   this.is_rd_valid = 0;
-    this.imm = 0;
-    this.rm = 0;
+  this.imm = 0;
+  this.rm = 0;
 
-    if ( is_c_extension_inst(inst_code) ) begin
-        case (inst_code[1:0])
-            2'b00: begin
-                case (inst_code[15:13])
-                    3'b000: begin
-                        if (inst_code[12:2]==0) begin
-                            this.inst_type = OP_C_ILLEGAL;
-                        end
-                        else begin
-                            this.inst_type = OP_C_ADDI4SPN;     //z-ext
-                            this.imm[9:6] = inst_code[10:7];
-                            this.imm[5:4] = inst_code[12:11];
-                            this.imm[3]   = inst_code[5];
-                            this.imm[2]   = inst_code[6];
-                            this.rd       = 8+inst_code[4:2];
-                            this.is_rd_valid = 1;
-                            this.rs1      = 2;
-                            this.is_rs1_valid = 1;
-                            if (imm==0) begin           
-                                this.inst_type = OP_C_ILLEGAL;
-                            end
-                        end
-                    end
-                    3'b001: begin //C.FLD for double floating point, C.LQ for rv128
-                        this.inst_type = OP_C_ILLEGAL;
-                    end
-                    3'b010: begin
-                        this.inst_type = OP_C_LW;       //z-ext
-                        this.imm[6]   = inst_code[5];
-                        this.imm[5:3] = inst_code[12:10];
-                        this.imm[2]   = inst_code[6];
-                        this.rs1      = 8+inst_code[9:7];
-                        this.rd       = 8+inst_code[4:2];
-                        this.is_rs1_valid = 1;
-                        this.is_rd_valid  = 1;
-                    end
-                    3'b011: begin
-                        this.inst_type = OP_C_LD;       //z-ext
-                        this.imm[7:6] = inst_code[6:5];
-                        this.imm[5:3] = inst_code[12:10];
-                        this.rs1      = 8+inst_code[9:7];
-                        this.rd       = 8+inst_code[4:2];
-                        this.is_rs1_valid = 1;
-                        this.is_rd_valid  = 1;
-                    end
-                    3'b100: begin
-                        this.inst_type = OP_C_ILLEGAL;  //RSVD
-                    end
-                    3'b101: begin //C.FSD for double floating point, C.SQ for rv128
-                        this.inst_type = OP_C_ILLEGAL;
-                    end
-                    3'b110: begin
-                        this.inst_type = OP_C_SW;       //z-ext
-                        this.imm[2] = inst_code[6];
-                        this.imm[6] = inst_code[5];
-                        this.imm[5:3] = inst_code[12:10];
-                        this.rs1      = 8+inst_code[9:7];
-                        this.rs2      = 8+inst_code[4:2];
-                        this.is_rs1_valid = 1;
-                        this.is_rs2_valid = 1;
-                    end
-                    3'b111: begin
-                        this.inst_type = OP_C_SD;       //z-ext
-                        this.imm[7:6] = inst_code[6:5];
-                        this.imm[5:3] = inst_code[12:10];
-                        this.rs1      = 8+inst_code[9:7];
-                        this.rs2      = 8+inst_code[4:2];
-                        this.is_rs1_valid = 1;
-                        this.is_rs2_valid = 1;
-                    end
-                endcase
-            end
-            2'b01: begin
-                case (inst_code[15:13])
-                    3'b000: begin
-                        if (inst_code[12:2]==0) begin
-                            this.inst_type = OP_C_NOP;
-                        end
-                        else begin
-                            this.inst_type = OP_C_ADDI; //s-ext
-                            this.imm[5]   = inst_code[12];
-                            this.imm[4:0] = inst_code[6:2];
-                            this.rd       = inst_code[11:7];
-                            this.rs1      = inst_code[11:7];
-                            this.is_rs1_valid = 1;
-                            this.is_rd_valid = 1;
-                            if (rd==0) begin
-                                this.inst_type = OP_C_ILLEGAL;
-                            end
-                        end
-                    end
-                    3'b001: begin
-                        this.inst_type = OP_C_ADDIW;    //s-ext
-                        this.imm[5]   = inst_code[12];
-                        this.imm[4:0] = inst_code[6:2];
-                        this.rd       = inst_code[11:7];
-                        this.rs1      = inst_code[11:7];
-                        this.is_rs1_valid = 1;
-                        this.is_rd_valid = 1;
-                        if (rd==0) begin           
-                            this.inst_type = OP_C_ILLEGAL;
-                        end
-                    end
-                    3'b010: begin
-                        this.inst_type = OP_C_LI;       //s-ext
-                        this.imm[5]   = inst_code[12];
-                        this.imm[4:0] = inst_code[6:2];
-                        this.rd       = inst_code[11:7];
-                        this.is_rd_valid = 1;
-                    end
-                    3'b011: begin
-                        if (inst_code[11:7] == 2) begin
-                            this.inst_type = OP_C_ADDI16SP; //s-ext
-                            this.imm[9] = inst_code[12];
-                            this.imm[8:7] = inst_code[4:3];
-                            this.imm[6] = inst_code[5];
-                            this.imm[5] = inst_code[2];
-                            this.imm[4] = inst_code[6];
-                            if (imm[9:4]==0) begin
-                                this.inst_type = OP_C_ILLEGAL;
-                            end
-                            this.is_rs1_valid = 1;
-                            this.rs1 = 2;
-                            this.is_rd_valid = 1;
-                            this.rd = 2;
-                        end
-                        else begin
-                            this.inst_type = OP_C_LUI;      //s-ext
-                            this.imm[17]    = inst_code[12];
-                            this.imm[16:12] = inst_code[6:2];
-                            this.rd         = inst_code[11:7];
-                            this.is_rd_valid = 1;
-//                            if (rd == 2) begin
-//                                this.inst_type = OP_C_ILLEGAL;
-//                            end
-//                            else if (imm[17:12]==0) begin
-                            if (imm[17:12]==0) begin
-                                this.inst_type = OP_C_ILLEGAL;
-                            end
-                        end
-                    end
-                    3'b100: begin
-                        case (inst_code[11:10])
-                            2'b00: begin
-                                this.inst_type = OP_C_SRLI;
-                                this.imm[5]   = inst_code[12];
-                                this.imm[4:0] = inst_code[6:2];
-                                this.rd = 8+inst_code[9:7];
-                                this.rs1 = 8+inst_code[9:7];
-                                this.is_rs1_valid = 1;
-                                this.is_rd_valid = 1;
-                                if (imm[5:0]==0) begin
-                                    this.inst_type = OP_C_ILLEGAL;
-                                end
-                            end
-                            2'b01: begin
-                                this.inst_type = OP_C_SRAI;
-                                this.imm[5]   = inst_code[12];
-                                this.imm[4:0] = inst_code[6:2];
-                                this.rs1 = 8+inst_code[9:7];
-                                this.rd = 8+inst_code[9:7];
-                                this.is_rs1_valid = 1;
-                                this.is_rd_valid = 1;
-                                if (imm[5:0]==0) begin
-                                    this.inst_type = OP_C_ILLEGAL;
-                                end
-                            end
-                            2'b10: begin
-                                this.inst_type = OP_C_ANDI;     //s-ext
-                                this.imm[5] = inst_code[12];
-                                this.imm[4:0] = inst_code[6:2];
-                                this.rs1 = 8+inst_code[9:7];
-                                this.rd  = 8+inst_code[9:7];
-                                this.is_rs1_valid = 1;
-                                this.is_rd_valid = 1;
-                            end
-                            2'b11: begin
-                                this.rs1 = 8+inst_code[9:7];
-                                this.rs2 = 8+inst_code[4:2];
-                                this.rd  = 8+inst_code[9:7];
-                                this.is_rs1_valid = 1;
-                                this.is_rs2_valid = 1;
-                                this.is_rd_valid = 1;
-                                case ({inst_code[12], inst_code[6:5]})
-                                    3'b000: this.inst_type = OP_C_SUB;
-                                    3'b001: this.inst_type = OP_C_XOR;
-                                    3'b010: this.inst_type = OP_C_OR;
-                                    3'b011: this.inst_type = OP_C_AND;
-                                    3'b100: this.inst_type = OP_C_SUBW;
-                                    3'b101: this.inst_type = OP_C_ADDW;
-                                    3'b110, 3'b111: this.inst_type = OP_C_ILLEGAL; //RSVD
-                                endcase
-                            end
-                        endcase
-                    end
-                    3'b101: begin
-                        this.inst_type = OP_C_J;    //s-ext
-                        this.imm[11]  = inst_code[12];
-                        this.imm[10]  = inst_code[8];
-                        this.imm[9:8] = inst_code[10:9];
-                        this.imm[7]   = inst_code[6];
-                        this.imm[6]   = inst_code[7];
-                        this.imm[5]   = inst_code[2];
-                        this.imm[4]   = inst_code[11];
-                        this.imm[3:1] = inst_code[5:3];
-                        this.rd = 0;
-                        this.is_rd_valid = 1;
-                    end
-                    3'b110: begin
-                        this.inst_type = OP_C_BEQZ; //s-ext
-                        this.imm[8]   = inst_code[12];
-                        this.imm[7:6] = inst_code[6:5];
-                        this.imm[5]   = inst_code[2];
-                        this.imm[4:3] = inst_code[11:10];
-                        this.imm[2:1] = inst_code[4:3];
-                        this.rs1 = 8+inst_code[9:7];
-                        this.is_rs1_valid = 1;
-                        this.rs2 = 0;
-                    end
-                    3'b111: begin
-                        this.inst_type = OP_C_BNEZ; //s-ext
-                        this.imm[8]   = inst_code[12];
-                        this.imm[7:6] = inst_code[6:5];
-                        this.imm[5]   = inst_code[2];
-                        this.imm[4:3] = inst_code[11:10];
-                        this.imm[2:1] = inst_code[4:3];
-                        this.rs1 = 8+inst_code[9:7];
-                        this.is_rs1_valid = 1;
-                        this.rs2 = 0;
-                    end
-                endcase
-            end
-            2'b10: begin
-                case (inst_code[15:13])
-                    3'b000: begin
-                        this.inst_type = OP_C_SLLI;
-                        this.imm[5]   = inst_code[12];
-                        this.imm[4:0] = inst_code[6:2];
-                        this.rd = inst_code[11:7];
-                        this.rs1 = inst_code[11:7];
-                        this.is_rd_valid = 1;
-                        this.is_rs1_valid = 1;
-                        if (imm[5:0] == 0) begin
-                            this.inst_type = OP_C_ILLEGAL;
-                        end
-                    end
-                    3'b001: begin //C.FLDSP for double floating point, C.LQSP for rv128
-                        this.inst_type = OP_C_ILLEGAL;
-                    end
-                    3'b010: begin
-                        this.inst_type = OP_C_LWSP; //z-ext
-                        this.imm[7:6] = inst_code[3:2];
-                        this.imm[5] = inst_code[12];
-                        this.imm[4:2] = inst_code[6:4];
-                        this.rs1 = 2;
-                        this.is_rs1_valid = 1;
-                        this.rd = inst_code[11:7];
-                        this.is_rd_valid = 1;
-                        if (rd==0) begin
-                            this.inst_type = OP_C_ILLEGAL;
-                        end
-                    end
-                    3'b011: begin
-                        this.inst_type = OP_C_LDSP; //z-ext
-                        this.imm[8:6] = inst_code[4:2];
-                        this.imm[5] = inst_code[12];
-                        this.imm[4:3] = inst_code[6:5];
-                        this.rs1 = 2;
-                        this.is_rs1_valid = 1;
-                        this.rd = inst_code[11:7];
-                        this.is_rd_valid = 1;
-                        if (rd==0) begin
-                            this.inst_type = OP_C_ILLEGAL;
-                        end
-                    end
-                    3'b100: begin
-                        case (inst_code[12])
-                            1'b0: begin
-                                if (inst_code[6:2] == 0) begin
-                                    begin
-                                        this.inst_type = OP_C_JR; 
-                                        this.rs1 = inst_code[11:7];
-                                        this.rd = 0;
-                                        this.is_rs1_valid = 1;
-                                        this.is_rd_valid = 1;
-                                        if (inst_code[11:7] == 0) begin
-                                            this.inst_type = OP_C_ILLEGAL;
-                                        end
-                                    end
-                                end
-                                else begin //inst_code[6:2] != 0
-                                    this.inst_type = OP_C_MV;
-                                    this.rd  = inst_code[11:7];
-                                    this.rs1 = 0;
-                                    this.rs2 = inst_code[6:2];
-                                    this.is_rs1_valid = 1;
-                                    this.is_rs2_valid = 1;
-                                    this.is_rd_valid = 1;
-                                end
-                            end
-                            1'b1: begin //inst_code[12]
-                                if (inst_code[6:2] == 0) begin
-                                    if (inst_code[11:7] == 0) begin
-                                        this.inst_type = OP_C_EBREAK;
-                                    end
-                                    else begin
-                                        this.inst_type = OP_C_JALR;
-                                        this.rs1 = inst_code[11:7];
-                                        this.rd = 1;
-                                        this.is_rs1_valid = 1;
-                                        this.is_rd_valid = 1;
-                                    end
-                                end
-                                else begin //inst_code[6:2] != 0
-                                    this.inst_type = OP_C_ADD;
-                                    this.rd  = inst_code[11:7];
-                                    this.rs1 = inst_code[11:7];
-                                    this.rs2 = inst_code[6:2];
-                                    this.is_rs1_valid = 1;
-                                    this.is_rs2_valid = 1;
-                                    this.is_rd_valid = 1;
-                                end
-                            end
-                        endcase
-                    end
-                    3'b101: begin //C.FSDSP for double floating point, C.SQSP for rv128
-                        this.inst_type = OP_C_ILLEGAL;
-                    end
-                    3'b110: begin
-                        this.inst_type = OP_C_SWSP;   //z-ext
-                        this.imm[7:6] = inst_code[8:7];
-                        this.imm[5:2] = inst_code[12:9];
-                        this.rs1 = 2;
-                        this.is_rs1_valid = 1;
-                        this.rs2 = inst_code[6:2];
-                        this.is_rs2_valid = 1;
-                    end
-                    3'b111: begin
-                        this.inst_type = OP_C_SDSP;   //z-ext
-                        this.imm[8:6] = inst_code[9:7];
-                        this.imm[5:3] = inst_code[12:10];
-                        this.rs1 = 2;
-                        this.is_rs1_valid = 1;
-                        this.rs2 = inst_code[6:2];
-                        this.is_rs2_valid = 1;
-                    end
-                endcase
-            end
-        endcase
-    end  //CEXT END
-    else if (inst_code[6:0] == 7'b0110111) begin
+  if ( is_c_extension_inst(inst_code) ) begin
+      case (inst_code[1:0])
+        2'b00: begin
+            case (inst_code[15:13])
+              3'b000: begin
+                  if (inst_code[12:2]==0) begin
+                      this.inst_type = OP_C_ILLEGAL;
+                  end
+                  else begin
+                      this.inst_type = OP_C_ADDI4SPN;     //z-ext
+                      this.imm[9:6] = inst_code[10:7];
+                      this.imm[5:4] = inst_code[12:11];
+                      this.imm[3]   = inst_code[5];
+                      this.imm[2]   = inst_code[6];
+                      this.rd       = 8+inst_code[4:2];
+                      this.is_rd_valid = 1;
+                      this.rs1      = 2;
+                      this.is_rs1_valid = 1;
+                      if (imm==0) begin           
+                          this.inst_type = OP_C_ILLEGAL;
+                      end
+                  end
+              end
+              3'b001: begin //C.FLD for double floating point, C.LQ for rv128
+                  this.inst_type = OP_C_ILLEGAL;
+              end
+              3'b010: begin
+                  this.inst_type = OP_C_LW;       //z-ext
+                  this.imm[6]   = inst_code[5];
+                  this.imm[5:3] = inst_code[12:10];
+                  this.imm[2]   = inst_code[6];
+                  this.rs1      = 8+inst_code[9:7];
+                  this.rd       = 8+inst_code[4:2];
+                  this.is_rs1_valid = 1;
+                  this.is_rd_valid  = 1;
+              end
+              3'b011: begin
+                  this.inst_type = OP_C_LD;       //z-ext
+                  this.imm[7:6] = inst_code[6:5];
+                  this.imm[5:3] = inst_code[12:10];
+                  this.rs1      = 8+inst_code[9:7];
+                  this.rd       = 8+inst_code[4:2];
+                  this.is_rs1_valid = 1;
+                  this.is_rd_valid  = 1;
+              end
+              3'b100: begin
+                  this.inst_type = OP_C_ILLEGAL;  //RSVD
+              end
+              3'b101: begin //C.FSD for double floating point, C.SQ for rv128
+                  this.inst_type = OP_C_ILLEGAL;
+              end
+              3'b110: begin
+                  this.inst_type = OP_C_SW;       //z-ext
+                  this.imm[2] = inst_code[6];
+                  this.imm[6] = inst_code[5];
+                  this.imm[5:3] = inst_code[12:10];
+                  this.rs1      = 8+inst_code[9:7];
+                  this.rs2      = 8+inst_code[4:2];
+                  this.is_rs1_valid = 1;
+                  this.is_rs2_valid = 1;
+              end
+              3'b111: begin
+                  this.inst_type = OP_C_SD;       //z-ext
+                  this.imm[7:6] = inst_code[6:5];
+                  this.imm[5:3] = inst_code[12:10];
+                  this.rs1      = 8+inst_code[9:7];
+                  this.rs2      = 8+inst_code[4:2];
+                  this.is_rs1_valid = 1;
+                  this.is_rs2_valid = 1;
+              end
+          endcase
+        end
+        2'b01: begin
+          case (inst_code[15:13])
+              3'b000: begin
+                  if (inst_code[12:2]==0) begin
+                      this.inst_type = OP_C_NOP;
+                  end
+                  else begin
+                      this.inst_type = OP_C_ADDI; //s-ext
+                      this.imm[5]   = inst_code[12];
+                      this.imm[4:0] = inst_code[6:2];
+                      this.rd       = inst_code[11:7];
+                      this.rs1      = inst_code[11:7];
+                      this.is_rs1_valid = 1;
+                      this.is_rd_valid = 1;
+                      if (rd==0) begin
+                          this.inst_type = OP_C_ILLEGAL;
+                      end
+                  end
+              end
+              3'b001: begin
+                  this.inst_type = OP_C_ADDIW;    //s-ext
+                  this.imm[5]   = inst_code[12];
+                  this.imm[4:0] = inst_code[6:2];
+                  this.rd       = inst_code[11:7];
+                  this.rs1      = inst_code[11:7];
+                  this.is_rs1_valid = 1;
+                  this.is_rd_valid = 1;
+                  if (rd==0) begin           
+                      this.inst_type = OP_C_ILLEGAL;
+                  end
+              end
+              3'b010: begin
+                  this.inst_type = OP_C_LI;       //s-ext
+                  this.imm[5]   = inst_code[12];
+                  this.imm[4:0] = inst_code[6:2];
+                  this.rd       = inst_code[11:7];
+                  this.is_rd_valid = 1;
+              end
+              3'b011: begin
+                  if (inst_code[11:7] == 2) begin
+                      this.inst_type = OP_C_ADDI16SP; //s-ext
+                      this.imm[9] = inst_code[12];
+                      this.imm[8:7] = inst_code[4:3];
+                      this.imm[6] = inst_code[5];
+                      this.imm[5] = inst_code[2];
+                      this.imm[4] = inst_code[6];
+                      if (imm[9:4]==0) begin
+                          this.inst_type = OP_C_ILLEGAL;
+                      end
+                      this.is_rs1_valid = 1;
+                      this.rs1 = 2;
+                      this.is_rd_valid = 1;
+                      this.rd = 2;
+                  end
+                  else begin
+                      this.inst_type = OP_C_LUI;      //s-ext
+                      this.imm[17]    = inst_code[12];
+                      this.imm[16:12] = inst_code[6:2];
+                      this.rd         = inst_code[11:7];
+                      this.is_rd_valid = 1;
+//                      if (rd == 2) begin
+//                          this.inst_type = OP_C_ILLEGAL;
+//                      end
+//                      else if (imm[17:12]==0) begin
+                      if (imm[17:12]==0) begin
+                          this.inst_type = OP_C_ILLEGAL;
+                      end
+                  end
+              end
+              3'b100: begin
+                  case (inst_code[11:10])
+                      2'b00: begin
+                          this.inst_type = OP_C_SRLI;
+                          this.imm[5]   = inst_code[12];
+                          this.imm[4:0] = inst_code[6:2];
+                          this.rd = 8+inst_code[9:7];
+                          this.rs1 = 8+inst_code[9:7];
+                          this.is_rs1_valid = 1;
+                          this.is_rd_valid = 1;
+                          if (imm[5:0]==0) begin
+                              this.inst_type = OP_C_ILLEGAL;
+                          end
+                      end
+                      2'b01: begin
+                          this.inst_type = OP_C_SRAI;
+                          this.imm[5]   = inst_code[12];
+                          this.imm[4:0] = inst_code[6:2];
+                          this.rs1 = 8+inst_code[9:7];
+                          this.rd = 8+inst_code[9:7];
+                          this.is_rs1_valid = 1;
+                          this.is_rd_valid = 1;
+                          if (imm[5:0]==0) begin
+                              this.inst_type = OP_C_ILLEGAL;
+                          end
+                      end
+                      2'b10: begin
+                          this.inst_type = OP_C_ANDI;     //s-ext
+                          this.imm[5] = inst_code[12];
+                          this.imm[4:0] = inst_code[6:2];
+                          this.rs1 = 8+inst_code[9:7];
+                          this.rd  = 8+inst_code[9:7];
+                          this.is_rs1_valid = 1;
+                          this.is_rd_valid = 1;
+                      end
+                      2'b11: begin
+                          this.rs1 = 8+inst_code[9:7];
+                          this.rs2 = 8+inst_code[4:2];
+                          this.rd  = 8+inst_code[9:7];
+                          this.is_rs1_valid = 1;
+                          this.is_rs2_valid = 1;
+                          this.is_rd_valid = 1;
+                          case ({inst_code[12], inst_code[6:5]})
+                              3'b000: this.inst_type = OP_C_SUB;
+                              3'b001: this.inst_type = OP_C_XOR;
+                              3'b010: this.inst_type = OP_C_OR;
+                              3'b011: this.inst_type = OP_C_AND;
+                              3'b100: this.inst_type = OP_C_SUBW;
+                              3'b101: this.inst_type = OP_C_ADDW;
+                              3'b110, 3'b111: this.inst_type = OP_C_ILLEGAL; //RSVD
+                          endcase
+                      end
+                  endcase
+              end
+              3'b101: begin
+                  this.inst_type = OP_C_J;    //s-ext
+                  this.imm[11]  = inst_code[12];
+                  this.imm[10]  = inst_code[8];
+                  this.imm[9:8] = inst_code[10:9];
+                  this.imm[7]   = inst_code[6];
+                  this.imm[6]   = inst_code[7];
+                  this.imm[5]   = inst_code[2];
+                  this.imm[4]   = inst_code[11];
+                  this.imm[3:1] = inst_code[5:3];
+                  this.rd = 0;
+                  this.is_rd_valid = 1;
+              end
+              3'b110: begin
+                  this.inst_type = OP_C_BEQZ; //s-ext
+                  this.imm[8]   = inst_code[12];
+                  this.imm[7:6] = inst_code[6:5];
+                  this.imm[5]   = inst_code[2];
+                  this.imm[4:3] = inst_code[11:10];
+                  this.imm[2:1] = inst_code[4:3];
+                  this.rs1 = 8+inst_code[9:7];
+                  this.is_rs1_valid = 1;
+                  this.rs2 = 0;
+              end
+              3'b111: begin
+                  this.inst_type = OP_C_BNEZ; //s-ext
+                  this.imm[8]   = inst_code[12];
+                  this.imm[7:6] = inst_code[6:5];
+                  this.imm[5]   = inst_code[2];
+                  this.imm[4:3] = inst_code[11:10];
+                  this.imm[2:1] = inst_code[4:3];
+                  this.rs1 = 8+inst_code[9:7];
+                  this.is_rs1_valid = 1;
+                  this.rs2 = 0;
+              end
+          endcase
+        end
+        2'b10: begin
+          case (inst_code[15:13])
+              3'b000: begin
+                  this.inst_type = OP_C_SLLI;
+                  this.imm[5]   = inst_code[12];
+                  this.imm[4:0] = inst_code[6:2];
+                  this.rd = inst_code[11:7];
+                  this.rs1 = inst_code[11:7];
+                  this.is_rd_valid = 1;
+                  this.is_rs1_valid = 1;
+                  if (imm[5:0] == 0) begin
+                      this.inst_type = OP_C_ILLEGAL;
+                  end
+              end
+              3'b001: begin //C.FLDSP for double floating point, C.LQSP for rv128
+                  this.inst_type = OP_C_ILLEGAL;
+              end
+              3'b010: begin
+                  this.inst_type = OP_C_LWSP; //z-ext
+                  this.imm[7:6] = inst_code[3:2];
+                  this.imm[5] = inst_code[12];
+                  this.imm[4:2] = inst_code[6:4];
+                  this.rs1 = 2;
+                  this.is_rs1_valid = 1;
+                  this.rd = inst_code[11:7];
+                  this.is_rd_valid = 1;
+                  if (rd==0) begin
+                      this.inst_type = OP_C_ILLEGAL;
+                  end
+              end
+              3'b011: begin
+                  this.inst_type = OP_C_LDSP; //z-ext
+                  this.imm[8:6] = inst_code[4:2];
+                  this.imm[5] = inst_code[12];
+                  this.imm[4:3] = inst_code[6:5];
+                  this.rs1 = 2;
+                  this.is_rs1_valid = 1;
+                  this.rd = inst_code[11:7];
+                  this.is_rd_valid = 1;
+                  if (rd==0) begin
+                      this.inst_type = OP_C_ILLEGAL;
+                  end
+              end
+              3'b100: begin
+                  case (inst_code[12])
+                      1'b0: begin
+                          if (inst_code[6:2] == 0) begin
+                              begin
+                                  this.inst_type = OP_C_JR; 
+                                  this.rs1 = inst_code[11:7];
+                                  this.rd = 0;
+                                  this.is_rs1_valid = 1;
+                                  this.is_rd_valid = 1;
+                                  if (inst_code[11:7] == 0) begin
+                                      this.inst_type = OP_C_ILLEGAL;
+                                  end
+                              end
+                          end
+                          else begin //inst_code[6:2] != 0
+                              this.inst_type = OP_C_MV;
+                              this.rd  = inst_code[11:7];
+                              this.rs1 = 0;
+                              this.rs2 = inst_code[6:2];
+                              this.is_rs1_valid = 1;
+                              this.is_rs2_valid = 1;
+                              this.is_rd_valid = 1;
+                          end
+                      end
+                      1'b1: begin //inst_code[12]
+                          if (inst_code[6:2] == 0) begin
+                              if (inst_code[11:7] == 0) begin
+                                  this.inst_type = OP_C_EBREAK;
+                              end
+                              else begin
+                                  this.inst_type = OP_C_JALR;
+                                  this.rs1 = inst_code[11:7];
+                                  this.rd = 1;
+                                  this.is_rs1_valid = 1;
+                                  this.is_rd_valid = 1;
+                              end
+                          end
+                          else begin //inst_code[6:2] != 0
+                              this.inst_type = OP_C_ADD;
+                              this.rd  = inst_code[11:7];
+                              this.rs1 = inst_code[11:7];
+                              this.rs2 = inst_code[6:2];
+                              this.is_rs1_valid = 1;
+                              this.is_rs2_valid = 1;
+                              this.is_rd_valid = 1;
+                          end
+                      end
+                  endcase
+              end
+              3'b101: begin //C.FSDSP for double floating point, C.SQSP for rv128
+                  this.inst_type = OP_C_ILLEGAL;
+              end
+              3'b110: begin
+                  this.inst_type = OP_C_SWSP;   //z-ext
+                  this.imm[7:6] = inst_code[8:7];
+                  this.imm[5:2] = inst_code[12:9];
+                  this.rs1 = 2;
+                  this.is_rs1_valid = 1;
+                  this.rs2 = inst_code[6:2];
+                  this.is_rs2_valid = 1;
+              end
+              3'b111: begin
+                  this.inst_type = OP_C_SDSP;   //z-ext
+                  this.imm[8:6] = inst_code[9:7];
+                  this.imm[5:3] = inst_code[12:10];
+                  this.rs1 = 2;
+                  this.is_rs1_valid = 1;
+                  this.rs2 = inst_code[6:2];
+                  this.is_rs2_valid = 1;
+              end
+          endcase
+      end
+  endcase
+  //CEXT END
+  else if (inst_code[6:0] == 7'b0110111) begin
         this.inst_type = OP_LUI;
         this.rd = inst_code[11:7];
         this.imm = {inst_code[31:12], 12'b0};
         this.is_rd_valid = 1;
-    end
-    else if (inst_code[6:0] == 7'b0010111) begin
+  end
+  else if (inst_code[6:0] == 7'b0010111) begin
         this.inst_type = OP_AUIPC;
         this.rd = inst_code[11:7];
         this.imm = {inst_code[31:12], 12'b0};
     this.is_rd_valid = 1;
-    end
-    else if (inst_code[6:0] == 7'b1101111) begin
+  end
+  else if (inst_code[6:0] == 7'b1101111) begin
         this.inst_type = OP_JAL;
         this.rd = inst_code[11:7];
         this.imm = 0;
@@ -1142,21 +1145,21 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
         this.imm[11] = inst_code[20];
         this.imm[19:12] = inst_code[19:12];
     this.is_rd_valid = 1;
-    end
-    else if (inst_code[6:0] == 7'b1100111) begin
+  end
+  else if (inst_code[6:0] == 7'b1100111) begin
         if (inst_code[14:12] == 3'b000) begin
             this.inst_type = OP_JALR;
             this.rd = inst_code[11:7];
             this.rs1 = inst_code[19:15];
             this.imm = inst_code[31:20];
-      this.is_rd_valid = 1;
-      this.is_rs1_valid = 1;
+            this.is_rd_valid = 1;
+            this.is_rs1_valid = 1;
         end
         else begin
             this.inst_type = OP_ILLEGAL;
         end
-    end
-    else if (inst_code[6:0] == 7'b1100011) begin
+  end
+  else if (inst_code[6:0] == 7'b1100011) begin
         if (inst_code[14:12] == 3'b000) begin
             this.inst_type = OP_BEQ;
         end
@@ -1186,10 +1189,10 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
         this.imm[10:5] = inst_code[30:25];
         this.imm[4:1] = inst_code[11:8];
         this.imm[11] = inst_code[7];
-    this.is_rs1_valid = 1;
-    this.is_rs2_valid = 1;
-    end
-    else if (inst_code[6:0] == 7'b0000011) begin
+        this.is_rs1_valid = 1;
+        this.is_rs2_valid = 1;
+  end
+  else if (inst_code[6:0] == 7'b0000011) begin
         if (inst_code[14:12] == 3'b000) begin
             this.inst_type = OP_LB;
         end
@@ -1218,10 +1221,10 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
         this.rd = inst_code[11:7];
         this.rs1 = inst_code[19:15];
         this.imm = inst_code[31:20];
-    this.is_rs1_valid = 1;
-    this.is_rd_valid = 1;
-    end
-    else if (inst_code[6:0] == 7'b0100011) begin
+        this.is_rs1_valid = 1;
+        this.is_rd_valid = 1;
+  end
+  else if (inst_code[6:0] == 7'b0100011) begin
         if (inst_code[14:12] == 3'b000) begin
             this.inst_type = OP_SB;
         end
@@ -1242,15 +1245,15 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
         this.rs2 = inst_code[24:20];
         this.imm[11:5] = inst_code[31:25];
         this.imm[4:0] = inst_code[11:7];
-    this.is_rs1_valid = 1;
-    this.is_rs2_valid = 1;
+        this.is_rs1_valid = 1;
+        this.is_rs2_valid = 1;
     end
-    else if (inst_code[6:0] == 7'b0010011) begin
+  else if (inst_code[6:0] == 7'b0010011) begin
         this.rd = inst_code[11:7];
         this.rs1 = inst_code[19:15];
         this.imm = inst_code[31:20];
-    this.is_rs1_valid = 1;
-    this.is_rd_valid = 1;
+        this.is_rs1_valid = 1;
+        this.is_rd_valid = 1;
         
         if (inst_code[14:12] == 3'b000) begin
             this.inst_type = OP_ADDI;
@@ -1401,9 +1404,9 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
         this.rd = inst_code[11:7];
         this.rs1 = inst_code[19:15];
         this.rs2 = inst_code[24:20];
-    this.is_rs1_valid = 1;
-    this.is_rs2_valid = 1;
-    this.is_rd_valid = 1;
+        this.is_rs1_valid = 1;
+        this.is_rs2_valid = 1;
+        this.is_rd_valid = 1;
     end
     else if (inst_code[6:0] == 7'b0001111) begin
         if (inst_code[14:12] == 3'b000) begin
@@ -1490,8 +1493,8 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
             this.rs1 = inst_code[19:15];
             this.csr = inst_code[31:20];
             this.imm[16:5] = inst_code[31:20];
-      this.is_rd_valid = 1;
-      this.is_rs1_valid = 1;
+            this.is_rd_valid = 1;
+            this.is_rs1_valid = 1;
         end
         else if (inst_code[14:12] == 3'b010) begin
             this.inst_type = OP_CSRRS;
@@ -1499,8 +1502,8 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
             this.rs1 = inst_code[19:15];
             this.csr = inst_code[31:20];
             this.imm[16:5] = inst_code[31:20];
-      this.is_rd_valid = 1;
-      this.is_rs1_valid = 1;
+            this.is_rd_valid = 1;
+            this.is_rs1_valid = 1;
         end
         else if (inst_code[14:12] == 3'b011) begin
             this.inst_type = OP_CSRRC;
@@ -1508,8 +1511,8 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
             this.rs1 = inst_code[19:15];
             this.csr = inst_code[31:20];
             this.imm[16:5] = inst_code[31:20];
-      this.is_rd_valid = 1;
-      this.is_rs1_valid = 1;
+            this.is_rd_valid = 1;
+            this.is_rs1_valid = 1;
         end
         else if (inst_code[14:12] == 3'b101) begin
             this.inst_type = OP_CSRRWI;
@@ -1517,7 +1520,7 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
             this.imm[4:0] = inst_code[19:15];
             this.csr = inst_code[31:20];
             this.imm[16:5] = inst_code[31:20];
-      this.is_rd_valid = 1;
+            this.is_rd_valid = 1;
         end
         else if (inst_code[14:12] == 3'b110) begin
             this.inst_type = OP_CSRRSI;
@@ -1525,7 +1528,7 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
             this.imm[4:0] = inst_code[19:15];
             this.csr = inst_code[31:20];
             this.imm[16:5] = inst_code[31:20];
-      this.is_rd_valid = 1;
+            this.is_rd_valid = 1;
         end
         else if (inst_code[14:12] == 3'b111) begin
             this.inst_type = OP_CSRRCI;
@@ -1533,7 +1536,7 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
             this.imm[4:0] = inst_code[19:15];
             this.csr = inst_code[31:20];
             this.imm[16:5] = inst_code[31:20];
-      this.is_rd_valid = 1;
+            this.is_rd_valid = 1;
         end
         else begin
             this.inst_type = OP_ILLEGAL;
@@ -1542,8 +1545,8 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
     else if (inst_code[6:0] == 7'b0011011) begin
         this.rd = inst_code[11:7];
         this.rs1 = inst_code[19:15];
-    this.is_rd_valid = 1;
-    this.is_rs1_valid = 1;
+        this.is_rd_valid = 1;
+        this.is_rs1_valid = 1;
         
         if (inst_code[14:12] == 3'b000) begin
             this.inst_type = OP_ADDIW;
@@ -1646,9 +1649,9 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
         this.rd  = inst_code[11:7];
         this.rs1 = inst_code[19:15];
         this.rs2 = inst_code[24:20];
-    this.is_rd_valid  = 1;
-    this.is_rs1_valid = 1;
-    this.is_rs2_valid = 1;
+        this.is_rd_valid  = 1;
+        this.is_rs1_valid = 1;
+        this.is_rs2_valid = 1;
     end else if (inst_code[6:0] == 7'b000_0111) begin
         this.imm[11:0] = inst_code[31:20];
         this.rd  = inst_code[11:7];
@@ -1812,7 +1815,7 @@ function void riscv_inst_base_txn::inst_decode(bit[31:0] inst_code);
     end else begin
         this.inst_type = OP_ILLEGAL;
     end
-endfunction
+endfunction: inst_decode
 
 function bit riscv_inst_base_txn::is_c_extension_inst(bit[31:0] inst_code);
     if (inst_code[1:0] != 2'b11) begin

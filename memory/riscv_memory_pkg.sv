@@ -18,9 +18,9 @@
 `define RISCV_MEMORY_PKG__SV
 
 package riscv_memory_pkg;
-	import uvm_pkg::*;
+  import uvm_pkg::*;
 
-    `include "riscv_mem.sv"
+  `include "riscv_mem.sv"
 
 endpackage: riscv_memory_pkg
 
